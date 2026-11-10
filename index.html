@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#17130f">
+  <meta name="description" content="秦风·骠骑——以秦陵骑兵俑为灵感的网页跑酷小游戏。策陶马、跃断戟、收铜铃，在无尽驰道上建立军功。">
+  <title>秦风·骠骑｜秦陵骑兵俑跑酷</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <div class="stage" id="stage">
+      <canvas id="game" tabindex="-1" aria-label="秦风骠骑游戏画面：一尊秦陵骑兵俑策陶马在驰道上疾驰"></canvas>
+      <div class="grain" aria-hidden="true"></div>
+      <div class="vignette" aria-hidden="true"></div>
+
+      <header class="hud" id="hud">
+        <div class="hud-score">
+          <span class="hud-label">军功</span>
+          <strong id="scoreValue">0</strong>
+          <span class="hud-distance">行程 <b id="distanceValue">0</b> 步</span>
+        </div>
+
+        <div class="hud-morale">
+          <div class="morale-title">军心</div>
+          <div class="pips" id="pips" aria-label="军心三点">
+            <span class="pip"></span><span class="pip"></span><span class="pip"></span>
+          </div>
+          <div class="rush" id="rush" aria-hidden="true">
+            <span>破阵</span>
+            <div class="rush-bar"><i id="rushFill"></i></div>
+          </div>
+        </div>
+
+        <div class="hud-right">
+          <div class="combo" id="comboBadge"><span>连收</span><b id="comboValue">×1</b></div>
+          <button class="icon-btn" id="soundBtn" type="button" aria-label="关闭音效" title="音效开关">音</button>
+          <button class="icon-btn" id="pauseBtn" type="button" aria-label="暂停游戏" title="暂停（P）">
+            <span class="pause-glyph"><i></i><i></i></span>
+          </button>
+        </div>
+      </header>
+
+      <div class="canvas-tip" id="canvasTip" aria-hidden="true">空格 / 轻触画面跃起 · 空中再跃</div>
+      <button class="jump-btn" id="jumpBtn" type="button" aria-label="跃起">跃</button>
+
+      <section class="screen screen-menu" id="menuScreen">
+        <div class="menu-panel">
+          <div class="eyebrow"><span class="eyebrow-line"></span>秦陵骑兵俑 · 互动游戏</div>
+          <div class="title-row">
+            <h1>秦风<span class="title-dot">·</span>骠骑</h1>
+            <div class="seal" aria-hidden="true">秦</div>
+          </div>
+          <p class="subtitle">一骑陶马，踏破千年尘</p>
+          <p class="lede">骊山脚下，鼓声初动。<br>你唤醒秦陵中的骑兵俑，沿驰道疾驰——越过断戟与陷坑，收取青铜铃，让军功写满这卷战报。</p>
+
+          <div class="legend" aria-label="游戏元素">
+            <span><i class="dot dot-bell"></i>青铜铃 · 加军功</span>
+            <span><i class="dot dot-tally"></i>虎符 · 破阵无敌</span>
+            <span><i class="dot dot-hurt"></i>障碍 · 损军心</span>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-primary" id="startBtn" type="button">
+              <span>策马入阵</span>
+              <span class="btn-arrow" aria-hidden="true">→</span>
+            </button>
+            <div class="best-line">最高军功 <b id="menuBest">0</b></div>
+          </div>
+
+          <div class="controls">
+            <div class="control">
+              <kbd>空格</kbd><kbd>↑</kbd><span>跃起，空中再按可二段跃</span>
+            </div>
+            <div class="control">
+              <kbd>P</kbd><span>暂停</span><span class="control-sep"></span><kbd>M</kbd><span>音效</span>
+            </div>
+          </div>
+
+          <p class="source-note">形制灵感取自秦陵出土的骑兵俑与陶马 · 键盘、鼠标与触屏皆可游玩</p>
+        </div>
+      </section>
+
+      <section class="screen screen-dim hidden" id="pauseScreen" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+        <div class="modal-card modal-card-small">
+          <div class="modal-kicker">鼓声暂歇</div>
+          <h2 class="modal-title" id="pauseTitle">暂驻军阵</h2>
+          <p class="modal-copy">驰道漫漫，且听风声。</p>
+          <div class="modal-actions">
+            <button class="btn btn-primary" id="resumeBtn" type="button">继续驰行</button>
+            <button class="btn btn-ghost" id="pauseMenuBtn" type="button">收兵归营</button>
+          </div>
+          <p class="modal-hint">按 <kbd>P</kbd> 或 <kbd>Esc</kbd> 继续</p>
+        </div>
+      </section>
+
+      <section class="screen screen-dim hidden" id="overScreen" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+        <div class="modal-card">
+          <div class="modal-kicker">战报已录</div>
+          <h2 class="modal-title" id="overTitle">马踏尘归</h2>
+          <p class="modal-copy" id="overFlavor">一骑绝尘，军功留于驰道。</p>
+          <div class="result-grid">
+            <div class="result-item">
+              <span>军功</span>
+              <strong id="finalScore">0</strong>
+            </div>
+            <div class="result-item">
+              <span>行程</span>
+              <strong><b id="finalDistance">0</b><small>步</small></strong>
+            </div>
+            <div class="result-item">
+              <span>铜铃</span>
+              <strong><b id="finalBells">0</b><small>枚</small></strong>
+            </div>
+          </div>
+          <div class="rank-strip">
+            <span class="rank-label">军功爵</span>
+            <b id="finalRank">公士</b>
+            <span class="rank-note" id="rankNote">初入军阵</span>
+            <span class="new-best hidden" id="newBest">新纪录</span>
+          </div>
+          <div class="rank-progress" id="rankProgress">
+            <i id="rankProgressFill"></i>
+          </div>
+          <p class="rank-next" id="rankNext">再进一步，可晋「上造」</p>
+          <div class="modal-actions">
+            <button class="btn btn-primary" id="restartBtn" type="button">再入驰道 <span class="btn-arrow" aria-hidden="true">→</span></button>
+            <button class="btn btn-ghost" id="overMenuBtn" type="button">回到营门</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="toast" id="toast" role="status" aria-live="polite">
+        <span class="toast-mark">令</span>
+        <span id="toastText">破阵！</span>
+      </div>
+
+      <div class="rotate-note" aria-hidden="true">
+        <span class="rotate-icon"></span>
+        <p>横过屏幕，策马更尽兴</p>
+      </div>
+    </div>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
